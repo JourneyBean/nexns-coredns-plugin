@@ -30,7 +30,13 @@ func setup(c *caddy.Controller) error {
 			if !c.NextArg() {
 				return plugin.Error(mewwoof_plugin.Name(), c.ArgErr())
 			}
-			mewwoof_plugin.ControllerURL = c.Val()
+
+			config_url := c.Val()
+			if config_url[len(config_url)-1] != '/' {
+				config_url = config_url + "/"
+			}
+			mewwoof_plugin.ControllerURL = config_url
+
 		default:
 			return plugin.Error(mewwoof_plugin.Name(), c.ArgErr())
 		}
