@@ -45,8 +45,18 @@ func (p MewwoofPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dn
 	rrDataset := make([]dns.RR, 0)
 	rrExtraset := make([]dns.RR, 0)
 
+	// SOA
+	if queryType == "SOA" {
+		domain := p.Database.Search(queryName)
+		ds, _ := p.parseRecordData(&domain.Domain, &RRSet{Name: "", Type: "SOA"}, &Record{}, sourceIP)
+		rrDataset = append(rrDataset, ds...)
+	}
+
 	// regular response
 	domain, rrset := p.searchRRset(queryName, queryType, sourceIP)
+	if domain != nil {
+		log.Println("domain is", domain)
+	}
 	ds, es := p.parseRRset(domain, rrset, sourceIP)
 	rrDataset = append(rrDataset, ds...)
 	rrExtraset = append(rrExtraset, es...)

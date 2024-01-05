@@ -1,7 +1,6 @@
 package mewwoof
 
 import (
-	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -40,6 +39,9 @@ func (p *MewwoofPlugin) searchRRsetFromDomainData(domainData *DomainData, queryN
 				for _, rrset := range zone.RRsets {
 
 					rrsetDomain := rrset.Name + "." + domainData.Domain.Name + "."
+					if len(rrset.Name) == 0 {
+						rrsetDomain = domainData.Domain.Name + "."
+					}
 					if rrsetDomain == queryName && rrset.Type == queryTypeString {
 
 						// check if empty
@@ -108,7 +110,7 @@ func (p *MewwoofPlugin) parseRecordData(domain *Domain, rrset *RRSet, record *Re
 	}
 
 	responseHeader := dns.RR_Header{
-		Name:   rrset.Name + "." + domain.Name + ".",
+		Name:   getFqdn(rrset.Name, domain.Name),
 		Rrtype: dnsType,
 		Class:  dns.ClassINET,
 		Ttl:    uint32(record.TTL),
@@ -141,13 +143,13 @@ func (p *MewwoofPlugin) parseRecordData(domain *Domain, rrset *RRSet, record *Re
 		serial, _ := strconv.Atoi(domain.Serial)
 		rr := dns.TypeToRR[dnsType]()
 		rr.(*dns.SOA).Hdr = responseHeader
-		rr.(*dns.SOA).Ns = domain.Mname
-		rr.(*dns.SOA).Mbox = domain.Rname
+		rr.(*dns.SOA).Ns = getFqdn(domain.Mname, domain.Name)
+		rr.(*dns.SOA).Mbox = getFqdn(domain.Rname, domain.Name)
 		rr.(*dns.SOA).Serial = uint32(serial)
 		rr.(*dns.SOA).Refresh = uint32(domain.Refresh)
 		rr.(*dns.SOA).Retry = uint32(domain.Retry)
 		rr.(*dns.SOA).Expire = uint32(domain.Expire)
-		rr.(*dns.SOA).Minttl = 0
+		rr.(*dns.SOA).Minttl = uint32(domain.TTL)
 		rrDataset = append(rrDataset, rr)
 
 	case dns.TypeMX:
@@ -212,9 +214,10 @@ func splitIntoChunks(s string, chunkSize int) []string {
 
 func getFqdn(prefixOrFqdn string, domainName string) string {
 	fqdn := prefixOrFqdn
-	if fqdn[len(fqdn)-1] != '.' {
+	if len(fqdn) == 0 {
+		fqdn = domainName + "."
+	} else if fqdn[len(fqdn)-1] != '.' {
 		fqdn = fqdn + "." + domainName + "."
 	}
-	log.Println(fqdn)
 	return fqdn
 }
