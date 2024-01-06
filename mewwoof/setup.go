@@ -50,6 +50,7 @@ func setup(c *caddy.Controller) error {
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
+		mewwoof_plugin.Next = next
 		return mewwoof_plugin
 	})
 

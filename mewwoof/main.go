@@ -17,7 +17,7 @@ type MewwoofPlugin struct {
 	Database      Trie
 }
 
-func (p MewwoofPlugin) Name() string {
+func (p *MewwoofPlugin) Name() string {
 	return "mewwoof"
 }
 
@@ -32,31 +32,32 @@ func (p *MewwoofPlugin) Init() error {
 	return nil
 }
 
-func (p MewwoofPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (p *MewwoofPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
 	state := request.Request{W: w, Req: r}
-	log.Println("from:", state.IP(), "query:",
-		state.QName(), dns.ClassToString[state.QClass()], dns.TypeToString[state.QType()])
 
 	queryName := state.QName()
 	queryType := dns.TypeToString[state.QType()]
 	sourceIP := net.ParseIP(state.IP())
+
+	domainData := p.Database.Search(queryName)
+
+	// if domain not exists, pass to next plugin
+	if domainData == nil {
+		return plugin.NextOrFailure(p.Name(), p.Next, ctx, w, r)
+	}
 
 	rrDataset := make([]dns.RR, 0)
 	rrExtraset := make([]dns.RR, 0)
 
 	// SOA
 	if queryType == "SOA" {
-		domain := p.Database.Search(queryName)
-		ds, _ := p.parseRecordData(&domain.Domain, &RRSet{Name: "", Type: "SOA"}, &Record{}, sourceIP)
+		ds, _ := p.parseRecordData(&domainData.Domain, &RRSet{Name: "", Type: "SOA"}, &Record{}, sourceIP)
 		rrDataset = append(rrDataset, ds...)
 	}
 
 	// regular response
-	domain, rrset := p.searchRRset(queryName, queryType, sourceIP)
-	if domain != nil {
-		log.Println("domain is", domain)
-	}
+	domain, rrset := p.searchRRsetFromDomainData(domainData, queryName, queryType, sourceIP)
 	ds, es := p.parseRRset(domain, rrset, sourceIP)
 	rrDataset = append(rrDataset, ds...)
 	rrExtraset = append(rrExtraset, es...)
