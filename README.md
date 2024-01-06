@@ -1,92 +1,84 @@
-# daemon
+# NexNS CoreDNS Plugin
 
+ <!-- 假装有项目Logo -->
 
+NexNS CoreDNS Plugin 是一个与 NexNS Controller 协同工作的 CoreDNS 插件，旨在提供开箱即用的 DNS 解析服务。与传统 DNS 解决方案不同，NexNS CoreDNS Plugin 通过与 NexNS Controller 集成，实现了更灵活、可扩展且安全的 DNS 解析。
 
-## Getting started
+## 特点
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- **集成 NexNS Controller**： 所有名称记录都由 NexNS Controller 管理和同步，解决了传统 DNS Zone Transfer 协议的各种限制。
+- **动态 DNS 记录管理**： 实现了实时的 DNS 记录管理，使得修改和更新 DNS 记录变得更加简便。
+- **源地址过滤**： 支持根据请求源地址返回不同的 DNS 记录，轻松区分返回局域网和互联网查询结果。
+- **开箱即用**： 简单易用的配置和安装步骤，使得 NexNS CoreDNS Plugin 能够快速投入生产环境。
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 使用步骤
 
-## Add your files
+1. **下载 CoreDNS**：
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+    ```bash
+    git clone https://github.com/coredns/coredns.git
+    ```
+
+2. **编辑 `plugin.cfg` ：**
+
+    请确保nexns位于forward、alternate等插件前，否则轮不到nexns来处理就已经返回查询结果。
+
+    ```txt
+    log:log
+    nexns:github.com/JourneyBean/nexns-coredns-plugin
+    forward:forward
+    ```
+
+3. **编译**：
+
+    ```bash
+    make gen && make
+    ```
+
+4. **编辑 `Corefile` ：**
+
+    ```txt
+    . {
+        log
+        # cache # 注意：如果需要基于源地址返回不同记录，请不要前置缓存！NexNS提前将所有记录保存在内存，因此也无需担忧其查询速度。
+        nexns {
+            controller http://localhost:8000
+        }
+        cache
+        forward . 192.168.1.1:53
+    }
+    ```
+
+5. **运行**：
+
+    ```bash
+    ./coredns -conf Corefile -p 53
+    ```
+
+## 使用示例
 
 ```
-cd existing_repo
-git remote add origin https://git.mewwoof.cn/mewwoof-name-service/daemon.git
-git branch -M main
-git push -uf origin main
+$ dig A example.com. @127.0.0.1 -p 53 +short
+1.2.3.4
+
+$ dig A example.com. @192.168.1.123 -p 53 +short
+2.3.4.5
 ```
 
-## Integrate with your tools
+## 打包
 
-- [ ] [Set up project integrations](https://git.mewwoof.cn/mewwoof-name-service/daemon/-/settings/integrations)
+- **Debian/Ubuntu**
+- **OpenWRT**
+- **Archlinux**
 
-## Collaborate with your team
+待补充
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## 贡献
 
-## Test and Deploy
+待补充
 
-Use the built-in continuous integration in GitLab.
+## 许可证
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+MIT许可，详见LICENSE。
 
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+ <!-- Thanks GPT-3.5 for helping generate this document. -->
