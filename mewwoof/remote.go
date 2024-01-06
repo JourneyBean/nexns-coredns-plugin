@@ -1,4 +1,4 @@
-package mewwoof
+package nexns
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (p *MewwoofPlugin) loadAllDataFromURL() error {
+func (p *NexnsPlugin) loadAllDataFromURL() error {
 
 	// Send HTTP GET request
 	response, err := http.Get(p.ControllerURL + "api/v1/dump/")
@@ -36,7 +36,7 @@ func (p *MewwoofPlugin) loadAllDataFromURL() error {
 	return nil
 }
 
-func (p *MewwoofPlugin) loadDomainDataFromURL(domainId int) error {
+func (p *NexnsPlugin) loadDomainDataFromURL(domainId int) error {
 
 	// Send HTTP GET request
 	response, err := http.Get(p.ControllerURL + "api/v1/dump/" + strconv.Itoa(domainId) + "/")

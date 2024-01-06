@@ -1,4 +1,4 @@
-package mewwoof
+package nexns
 
 import (
 	"net"
@@ -11,13 +11,13 @@ import (
 const MaxPacketSize = 512
 const MaxTxtRecordSize = 255
 
-func (p *MewwoofPlugin) searchRRset(queryName string, queryTypeString string, sourceIP net.IP) (*Domain, *RRSet) {
+func (p *NexnsPlugin) searchRRset(queryName string, queryTypeString string, sourceIP net.IP) (*Domain, *RRSet) {
 	domainData := p.Database.Search(queryName)
 	return p.searchRRsetFromDomainData(domainData, queryName, queryTypeString, sourceIP)
 }
 
 // 搜索trie树，匹配domain中的RRset
-func (p *MewwoofPlugin) searchRRsetFromDomainData(domainData *DomainData, queryName string, queryTypeString string, sourceIP net.IP) (*Domain, *RRSet) {
+func (p *NexnsPlugin) searchRRsetFromDomainData(domainData *DomainData, queryName string, queryTypeString string, sourceIP net.IP) (*Domain, *RRSet) {
 
 	if domainData == nil {
 		return nil, nil
@@ -62,7 +62,7 @@ func (p *MewwoofPlugin) searchRRsetFromDomainData(domainData *DomainData, queryN
 	return nil, nil
 }
 
-func (p *MewwoofPlugin) writeAnswer(rrData *[]dns.RR, rrExtra *[]dns.RR, r *dns.Msg) (int, *dns.Msg) {
+func (p *NexnsPlugin) writeAnswer(rrData *[]dns.RR, rrExtra *[]dns.RR, r *dns.Msg) (int, *dns.Msg) {
 	if len(*rrData) == 0 {
 		msg := new(dns.Msg)
 		msg.SetRcode(r, dns.RcodeNameError)
@@ -78,7 +78,7 @@ func (p *MewwoofPlugin) writeAnswer(rrData *[]dns.RR, rrExtra *[]dns.RR, r *dns.
 	return dns.RcodeSuccess, msg
 }
 
-func (p *MewwoofPlugin) parseRRset(domain *Domain, rrset *RRSet, sourceIP net.IP) ([]dns.RR, []dns.RR) {
+func (p *NexnsPlugin) parseRRset(domain *Domain, rrset *RRSet, sourceIP net.IP) ([]dns.RR, []dns.RR) {
 	rrDataset := make([]dns.RR, 0)
 	rrExtraset := make([]dns.RR, 0)
 
@@ -100,7 +100,7 @@ func (p *MewwoofPlugin) parseRRset(domain *Domain, rrset *RRSet, sourceIP net.IP
 	return rrDataset, rrExtraset
 }
 
-func (p *MewwoofPlugin) parseRecordData(domain *Domain, rrset *RRSet, record *Record, sourceIP net.IP) ([]dns.RR, []dns.RR) {
+func (p *NexnsPlugin) parseRecordData(domain *Domain, rrset *RRSet, record *Record, sourceIP net.IP) ([]dns.RR, []dns.RR) {
 	dnsType := dns.StringToType[rrset.Type]
 	rrDataset := make([]dns.RR, 0)
 	rrExtraset := make([]dns.RR, 0)

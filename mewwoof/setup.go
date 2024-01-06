@@ -1,10 +1,10 @@
 /*
-	Mewwoof Name Service plugin for CoreDNS
+	Nexns CoreDNS plugin for CoreDNS
 
 	@author: Johnson Liu, GPT-3.5
 */
 
-package mewwoof
+package nexns
 
 import (
 	"fmt"
@@ -15,43 +15,43 @@ import (
 )
 
 /*
-	Mewwoof plugin definition
+	Nexns plugin definition
 */
 
 func setup(c *caddy.Controller) error {
 
-	mewwoof_plugin := &MewwoofPlugin{}
+	nexns_plugin := &NexnsPlugin{}
 
-	c.Next() // 'mewwoof'
+	c.Next() // 'nexns'
 
-	for c.NextBlock() { // mewwoof {...}
+	for c.NextBlock() { // nexns {...}
 		switch c.Val() {
 		case "controller":
 			if !c.NextArg() {
-				return plugin.Error(mewwoof_plugin.Name(), c.ArgErr())
+				return plugin.Error(nexns_plugin.Name(), c.ArgErr())
 			}
 
 			config_url := c.Val()
 			if config_url[len(config_url)-1] != '/' {
 				config_url = config_url + "/"
 			}
-			mewwoof_plugin.ControllerURL = config_url
+			nexns_plugin.ControllerURL = config_url
 
 		default:
-			return plugin.Error(mewwoof_plugin.Name(), c.ArgErr())
+			return plugin.Error(nexns_plugin.Name(), c.ArgErr())
 		}
 
 	}
 
 	// Initialize the plugin
-	err := mewwoof_plugin.Init()
+	err := nexns_plugin.Init()
 	if err != nil {
-		return plugin.Error(mewwoof_plugin.Name(), fmt.Errorf("failed to init: %v", err))
+		return plugin.Error(nexns_plugin.Name(), fmt.Errorf("failed to init: %v", err))
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		mewwoof_plugin.Next = next
-		return mewwoof_plugin
+		nexns_plugin.Next = next
+		return nexns_plugin
 	})
 
 	return nil
@@ -62,5 +62,5 @@ func setup(c *caddy.Controller) error {
 */
 
 func init() {
-	plugin.Register("mewwoof", setup)
+	plugin.Register("nexns", setup)
 }

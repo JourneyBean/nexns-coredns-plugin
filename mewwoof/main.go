@@ -1,4 +1,4 @@
-package mewwoof
+package nexns
 
 import (
 	"context"
@@ -11,28 +11,28 @@ import (
 	"github.com/miekg/dns"
 )
 
-type MewwoofPlugin struct {
+type NexnsPlugin struct {
 	Next          plugin.Handler
 	ControllerURL string
 	Database      Trie
 }
 
-func (p *MewwoofPlugin) Name() string {
-	return "mewwoof"
+func (p *NexnsPlugin) Name() string {
+	return "nexns"
 }
 
-func (p *MewwoofPlugin) Init() error {
+func (p *NexnsPlugin) Init() error {
 	err := p.loadAllDataFromURL()
 	if err != nil {
 		return fmt.Errorf("failed to initialize plugin: %v", err)
 	}
 
-	log.Println("Mewwoof Plugin Init success. Controller URL:", p.ControllerURL)
+	log.Println("Nexns Plugin Init success. Controller URL:", p.ControllerURL)
 
 	return nil
 }
 
-func (p *MewwoofPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (p *NexnsPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
 
 	state := request.Request{W: w, Req: r}
 

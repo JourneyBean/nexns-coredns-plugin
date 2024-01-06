@@ -1,4 +1,4 @@
-package mewwoof
+package nexns
 
 // DomainData 包含了一个域下的所有信息
 type DomainData struct {
