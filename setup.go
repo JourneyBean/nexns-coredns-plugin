@@ -37,6 +37,22 @@ func setup(c *caddy.Controller) error {
 			}
 			nexns_plugin.ControllerURL = config_url
 
+		case "client_id":
+			if !c.NextArg() {
+				return plugin.Error(nexns_plugin.Name(), c.ArgErr())
+			}
+
+			client_id := c.Val()
+			nexns_plugin.ClientId = client_id
+
+		case "client_secret":
+			if !c.NextArg() {
+				return plugin.Error(nexns_plugin.Name(), c.ArgErr())
+			}
+
+			client_secret := c.Val()
+			nexns_plugin.ClientSecret = client_secret
+
 		default:
 			return plugin.Error(nexns_plugin.Name(), c.ArgErr())
 		}

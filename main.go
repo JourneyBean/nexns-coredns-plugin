@@ -15,6 +15,8 @@ import (
 type NexnsPlugin struct {
 	Next          plugin.Handler
 	ControllerURL string
+	ClientId      string
+	ClientSecret  string
 	Database      Trie
 }
 

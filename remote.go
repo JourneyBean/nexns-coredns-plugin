@@ -81,7 +81,10 @@ func (p *NexnsPlugin) connectToNotificationChannel() error {
 	log.Println("[Nexns] Connecting to notification channel.")
 
 	controllerURL := strings.Replace(p.ControllerURL, "http", "ws", 1)
-	conn, _, err := websocket.DefaultDialer.Dial(controllerURL+"api/v1/ws/client-notify/", nil)
+	headers := http.Header{}
+	headers.Add("X-CLIENT-ID", p.ClientId)
+	headers.Add("X-CLIENT-SECRET", p.ClientSecret)
+	conn, _, err := websocket.DefaultDialer.Dial(controllerURL+"api/v1/ws/client-notify/", headers)
 	if err != nil {
 		log.Println("[Nexns] Failed to connect to notification channel:", err)
 		return err
