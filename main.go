@@ -2,12 +2,15 @@ package nexns
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/request"
+	"github.com/gorilla/websocket"
 	"github.com/miekg/dns"
 )
 
@@ -17,6 +20,12 @@ type NexnsPlugin struct {
 	Database      Trie
 }
 
+type WSNotification struct {
+	Type   string `json:"type"`
+	Action string `json:"action"`
+	Domain int    `json:"domain"`
+}
+
 func (p *NexnsPlugin) Name() string {
 	return "nexns"
 }
@@ -24,10 +33,40 @@ func (p *NexnsPlugin) Name() string {
 func (p *NexnsPlugin) Init() error {
 	err := p.loadAllDataFromURL()
 	if err != nil {
-		return fmt.Errorf("failed to initialize plugin: %v", err)
+		return fmt.Errorf("[Nexns] Failed to initialize plugin: %v", err)
 	}
 
-	log.Println("Nexns Plugin Init success. Controller URL:", p.ControllerURL)
+	// websocket to recv notifications
+	go func() error {
+		log.Println("[Nexns] Connecting to notification channel.")
+		controllerURL := strings.Replace(p.ControllerURL, "http", "ws", 1)
+		conn, _, err := websocket.DefaultDialer.Dial(controllerURL+"api/v1/ws/client-notify/", nil)
+		if err != nil {
+			log.Println("[Nexns] Failed to connect to notification channel:", err)
+			return err
+		}
+		log.Println("[Nexns] Successfully connected to notification channel.")
+		defer conn.Close()
+
+		for {
+			// 从上游服务器读取消息
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				return err
+			}
+
+			notificationData := WSNotification{}
+			err = json.Unmarshal(msg, &notificationData)
+			if err != nil {
+				log.Println("[Nexns] Error parsing notification data:", err)
+			}
+
+			log.Println("[Nexns] Loading domain id:", notificationData.Domain)
+			p.loadDomainDataFromURL(notificationData.Domain)
+		}
+	}()
+
+	log.Println("[Nexns] Init success. Controller URL:", p.ControllerURL)
 
 	return nil
 }
