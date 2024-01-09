@@ -2,15 +2,13 @@ package nexns
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
-	"strings"
+	"time"
 
 	"github.com/coredns/coredns/plugin"
 	"github.com/coredns/coredns/request"
-	"github.com/gorilla/websocket"
 	"github.com/miekg/dns"
 )
 
@@ -38,31 +36,11 @@ func (p *NexnsPlugin) Init() error {
 
 	// websocket to recv notifications
 	go func() error {
-		log.Println("[Nexns] Connecting to notification channel.")
-		controllerURL := strings.Replace(p.ControllerURL, "http", "ws", 1)
-		conn, _, err := websocket.DefaultDialer.Dial(controllerURL+"api/v1/ws/client-notify/", nil)
-		if err != nil {
-			log.Println("[Nexns] Failed to connect to notification channel:", err)
-			return err
-		}
-		log.Println("[Nexns] Successfully connected to notification channel.")
-		defer conn.Close()
-
 		for {
-			// 从上游服务器读取消息
-			_, msg, err := conn.ReadMessage()
+			err := p.connectToNotificationChannel()
 			if err != nil {
-				return err
+				time.Sleep(5 * time.Second) // 等待一段时间后尝试重新连接
 			}
-
-			notificationData := WSNotification{}
-			err = json.Unmarshal(msg, &notificationData)
-			if err != nil {
-				log.Println("[Nexns] Error parsing notification data:", err)
-			}
-
-			log.Println("[Nexns] Loading domain id:", notificationData.Domain)
-			p.loadDomainDataFromURL(notificationData.Domain)
 		}
 	}()
 
