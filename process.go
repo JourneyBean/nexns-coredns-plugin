@@ -74,7 +74,7 @@ func (p *NexnsPlugin) writeAnswer(rrData *[]dns.RR, rrExtra *[]dns.RR, r *dns.Ms
 	msg.SetReply(r)
 	msg.Authoritative = true
 	msg.Answer = append(msg.Answer, *rrData...)
-	msg.Extra = append(msg.Answer, *rrExtra...)
+	msg.Extra = append(msg.Extra, *rrExtra...)
 	return dns.RcodeSuccess, msg
 }
 

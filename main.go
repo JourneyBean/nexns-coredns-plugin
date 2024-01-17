@@ -87,8 +87,10 @@ func (p *NexnsPlugin) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns
 		if cnameRRset != nil {
 			ds, _ := p.parseRRset(cnameDomain, cnameRRset, sourceIP)
 
+			// Add CNAME record itself
 			rrDataset = append(rrDataset, ds...)
 
+			// Add CNAMEd records of same type
 			for _, cnameRR := range ds {
 				domain, rrset := p.searchRRset(cnameRR.(*dns.CNAME).Target, queryType, sourceIP)
 				ds, es := p.parseRRset(domain, rrset, sourceIP)
