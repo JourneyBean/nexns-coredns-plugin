@@ -39,5 +39,5 @@ type RRSet struct {
 type Record struct {
 	ID   int    `json:"id"`
 	TTL  int    `json:"ttl"`
-	Data string `json:"data"`
+	Data string `json:"val"`
 }
