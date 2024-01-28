@@ -12,12 +12,34 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+func (p *NexnsPlugin) RequestWithCredentials(url string) (*http.Response, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return nil, err
+	}
+
+	// Add auth headers
+	req.Header.Add("X-CLIENT-ID", p.ClientId)
+	req.Header.Add("X-CLIENT-SECRET", p.ClientSecret)
+
+	// Do request
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("Error making request:", err)
+		return nil, err
+	}
+	// defer response.Body.Close()
+
+	return response, nil
+}
+
 func (p *NexnsPlugin) loadAllDataFromURL() error {
 
 	log.Println("[Nexns] Pulling all data from server.")
 
-	// Send HTTP GET request
-	response, err := http.Get(p.ControllerURL + "api/v1/dump/")
+	// Create a request
+	response, err := p.RequestWithCredentials(p.ControllerURL + "api/v1/domain/dump/")
 	if err != nil {
 		return fmt.Errorf("HTTP request error: %v", err)
 	}
@@ -49,7 +71,7 @@ func (p *NexnsPlugin) loadDomainDataFromURL(domainId int) error {
 	log.Println("[Nexns] Loading domain id:", domainId)
 
 	// Send HTTP GET request
-	response, err := http.Get(p.ControllerURL + "api/v1/dump/" + strconv.Itoa(domainId) + "/")
+	response, err := p.RequestWithCredentials(p.ControllerURL + "api/v1/domain/" + strconv.Itoa(domainId) + "/dump/")
 	if err != nil {
 		return fmt.Errorf("HTTP request error: %v", err)
 	}
