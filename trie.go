@@ -140,7 +140,8 @@ func (t *Trie) Delete(domain string) {
 func BuildTrie(data []DomainData) *Trie {
 	trie := &Trie{root: &TrieNode{}}
 
-	for _, entry := range data {
+	for _, entry := range data[:] {
+		entry := entry
 		trie.Insert(&entry)
 	}
 
