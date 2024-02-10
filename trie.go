@@ -28,11 +28,13 @@ func (t *Trie) Insert(domainData *DomainData) {
 			node.children = make(map[string]*TrieNode)
 		}
 
-		if _, exists := node.children[label]; !exists {
-			node.children[label] = &TrieNode{}
+		childNode, exists := node.children[label]
+		if !exists {
+			childNode = &TrieNode{}
+			node.children[label] = childNode
 		}
 
-		node = node.children[label]
+		node = childNode
 	}
 
 	node.domainData = domainData
